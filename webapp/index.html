@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MarketHub — Умный маркетплейс</title>
+  <meta name="description" content="MarketHub — лучший выбор техники и гаджетов по лучшим ценам" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ═══════════════════ HEADER ═══════════════════ -->
+<header class="header" id="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">M</div>
+      <div class="logo-text">
+        <span class="logo-name">MarketHub</span>
+        <span class="logo-sub">Smart Market</span>
+      </div>
+    </div>
+    <button class="cart-btn" id="cartBtn" onclick="openCart()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+      </svg>
+      <span class="cart-badge" id="cartBadge">0</span>
+    </button>
+  </div>
+</header>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="hero" id="heroSection">
+  <div class="hero-bg">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      🔥 Горячие предложения
+    </div>
+    <h1 class="hero-title">Лучшие гаджеты<br>по&nbsp;<span class="gradient-text">умным ценам</span></h1>
+    <p class="hero-sub">Только проверенные товары. Быстрая доставка. Гарантия качества.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><span class="hero-stat-num">3</span><span class="hero-stat-label">Товара</span></div>
+      <div class="hero-stat-div"></div>
+      <div class="hero-stat"><span class="hero-stat-num">100%</span><span class="hero-stat-label">Гарантия</span></div>
+      <div class="hero-stat-div"></div>
+      <div class="hero-stat"><span class="hero-stat-num">1–3</span><span class="hero-stat-label">Дня доставки</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CATALOG ═══════════════════ -->
+<main class="catalog-section" id="catalogSection">
+  <div class="section-header">
+    <h2 class="section-title">Каталог</h2>
+    <div class="section-filter">
+      <button class="filter-btn active" onclick="filterCatalog('all', this)">Все</button>
+      <button class="filter-btn" onclick="filterCatalog('Электроника', this)">Электроника</button>
+      <button class="filter-btn" onclick="filterCatalog('Периферия', this)">Периферия</button>
+    </div>
+  </div>
+
+  <div class="products-grid" id="productsGrid">
+    <!-- Заполняется JS -->
+  </div>
+</main>
+
+<!-- ═══════════════════ CART DRAWER ═══════════════════ -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeCart()"></div>
+<aside class="cart-drawer" id="cartDrawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <h3 class="drawer-title">🛒 Корзина</h3>
+    <button class="drawer-close" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <!-- empty state -->
+    <div class="cart-empty" id="cartEmpty">
+      <div class="cart-empty-icon">🛍</div>
+      <p>Корзина пуста</p>
+      <span>Добавьте товары из каталога</span>
+    </div>
+  </div>
+  <div class="cart-footer" id="cartFooter" style="display:none">
+    <div class="cart-summary">
+      <div class="cart-summary-row">
+        <span>Товаров:</span>
+        <span id="cartCount">0</span>
+      </div>
+      <div class="cart-summary-row total">
+        <span>Итого:</span>
+        <span id="cartTotal">0 ₽</span>
+      </div>
+    </div>
+    <button class="checkout-btn" id="checkoutBtn" onclick="checkout()">
+      <span>Оформить заказ</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </button>
+  </div>
+</aside>
+
+<!-- ═══════════════════ PRODUCT MODAL ═══════════════════ -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()"></div>
+<div class="product-modal" id="productModal">
+  <button class="modal-close" onclick="closeModal()">✕</button>
+  <div class="modal-emoji" id="modalEmoji"></div>
+  <h2 class="modal-name" id="modalName"></h2>
+  <div class="modal-badge" id="modalBadge"></div>
+  <p class="modal-desc" id="modalDesc"></p>
+  <div class="modal-meta">
+    <div class="modal-meta-item"><span>📦</span><span id="modalStock"></span></div>
+    <div class="modal-meta-item"><span>🏷</span><span id="modalCategory"></span></div>
+    <div class="modal-meta-item"><span>🚚</span><span>1–3 дня</span></div>
+  </div>
+  <div class="modal-price-row">
+    <div>
+      <div class="modal-price" id="modalPrice"></div>
+      <div class="modal-old-price" id="modalOldPrice"></div>
+    </div>
+    <button class="modal-add-btn" id="modalAddBtn" onclick="addFromModal()">В корзину</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ TOAST ═══════════════════ -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════ JS ═══════════════════ -->
+<script src="app.js"></script>
+</body>
+</html>
