@@ -12,7 +12,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQu
 
 # ─── CONFIG ─────────────────────────────────────────────────────────────────
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEBAPP_URL = os.getenv("WEBAPP_URL", "https://your-domain.com")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://daviddavidov20022-commits.github.io/AI-Market-Hub/")
 
 # ─── LOGGING ─────────────────────────────────────────────────────────────────
 logging.basicConfig(
