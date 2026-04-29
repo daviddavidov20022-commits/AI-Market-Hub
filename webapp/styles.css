@@ -373,6 +373,17 @@ html, body {
   flex-direction: column;
   gap: 6px;
 }
+.mockup-3d-container {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  cursor: grab;
+  background: var(--bg-card);
+}
+.mockup-3d-container:active { cursor: grabbing; }
+.mockup-3d-container canvas {
+  display: block;
+  outline: none;
+}
 .control-btn {
   width: 36px;
   height: 36px;

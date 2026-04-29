@@ -18,6 +18,8 @@ const state = {
   imgStartX: 0, imgStartY: 0,
 };
 
+let render3dInterval = null;
+
 // ── Product config ─────────────────────────────────────────────────────────
 const PRODUCTS = {
   sticker: {
@@ -212,6 +214,32 @@ function renderMockup(canvasId) {
   const isSmall = canvasId === 'order-preview-canvas';
   const W = isSmall ? 72 : Math.min(window.innerWidth - 32, 400);
   const H = isSmall ? 72 : Math.round(W * 0.75);
+
+  const container3d = document.getElementById('mockup-3d-container');
+  const controls2d = document.getElementById('mockup-controls-2d');
+  const controls3dUI = document.getElementById('mockup-controls-3d');
+
+  if (render3dInterval) {
+    cancelAnimationFrame(render3dInterval);
+    render3dInterval = null;
+  }
+
+  if (!isSmall && state.product === 'mug') {
+    canvas.style.display = 'none';
+    if (controls2d) controls2d.style.display = 'none';
+    if (controls3dUI) controls3dUI.style.display = 'block';
+    if (container3d) {
+      container3d.style.display = 'block';
+      renderMug3D(state.generatedImageUrl, 'mockup-3d-container', W, H);
+    }
+    return;
+  } else {
+    canvas.style.display = 'block';
+    if (!isSmall && controls2d) controls2d.style.display = 'flex';
+    if (!isSmall && controls3dUI) controls3dUI.style.display = 'none';
+    if (container3d) container3d.style.display = 'none';
+  }
+
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
 
@@ -219,10 +247,113 @@ function renderMockup(canvasId) {
   img.onload = () => {
     ctx.clearRect(0, 0, W, H);
     if (state.product === 'sticker') drawStickerMockup(ctx, img, W, H, isSmall);
-    else if (state.product === 'mug')  drawMugMockup(ctx, img, W, H, isSmall);
+    else if (state.product === 'mug')  drawMugMockup(ctx, img, W, H, isSmall); // For small order preview
     else                               drawCanvasMockup(ctx, img, W, H, isSmall);
   };
   img.src = state.generatedImageUrl;
+}
+
+// ── 3D Mug Renderer ───────────────────────────────────────────────────────
+function renderMug3D(imageUrl, containerId, W, H) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#1a1a24');
+
+  const camera = new THREE.PerspectiveCamera(35, W / H, 0.1, 100);
+  camera.position.set(0, 18, 35);
+  
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(W, H);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  container.appendChild(renderer.domElement);
+
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+  scene.add(ambientLight);
+
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  dirLight.position.set(10, 15, 10);
+  dirLight.castShadow = true;
+  scene.add(dirLight);
+
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.2);
+  fillLight.position.set(-10, 5, -10);
+  scene.add(fillLight);
+
+  const mugGroup = new THREE.Group();
+  scene.add(mugGroup);
+
+  const loader = new THREE.TextureLoader();
+  loader.load(imageUrl, (texture) => {
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(1, 1);
+
+    const outsideMat = new THREE.MeshStandardMaterial({ 
+      map: texture, roughness: 0.2, metalness: 0.1 
+    });
+    const whiteMat = new THREE.MeshStandardMaterial({ 
+      color: 0xffffff, roughness: 0.2, metalness: 0.1 
+    });
+
+    const r = 4;
+    const h = 9;
+    const seg = 64;
+
+    const outGeo = new THREE.CylinderGeometry(r, r, h, seg, 1, true);
+    const outMesh = new THREE.Mesh(outGeo, outsideMat);
+    outMesh.castShadow = true;
+    outMesh.receiveShadow = true;
+    mugGroup.add(outMesh);
+
+    const inGeo = new THREE.CylinderGeometry(r - 0.3, r - 0.3, h, seg, 1, true);
+    const inMesh = new THREE.Mesh(inGeo, whiteMat);
+    inMesh.material.side = THREE.BackSide;
+    mugGroup.add(inMesh);
+
+    const rimGeo = new THREE.RingGeometry(r - 0.3, r, seg);
+    const rimMesh = new THREE.Mesh(rimGeo, whiteMat);
+    rimMesh.rotation.x = -Math.PI / 2;
+    rimMesh.position.y = h / 2;
+    mugGroup.add(rimMesh);
+
+    const botGeo = new THREE.CircleGeometry(r, seg);
+    const botMesh = new THREE.Mesh(botGeo, whiteMat);
+    botMesh.rotation.x = Math.PI / 2;
+    botMesh.position.y = -h / 2;
+    mugGroup.add(botMesh);
+
+    const inBotGeo = new THREE.CircleGeometry(r - 0.3, seg);
+    const inBotMesh = new THREE.Mesh(inBotGeo, whiteMat);
+    inBotMesh.rotation.x = -Math.PI / 2;
+    inBotMesh.position.y = -h / 2 + 0.3;
+    mugGroup.add(inBotMesh);
+
+    const handleGeo = new THREE.TorusGeometry(2.5, 0.5, 16, 32);
+    const handleMesh = new THREE.Mesh(handleGeo, whiteMat);
+    handleMesh.position.set(r + 0.3, 0, 0);
+    handleMesh.castShadow = true;
+    handleMesh.receiveShadow = true;
+    mugGroup.add(handleMesh);
+
+    mugGroup.rotation.y = -Math.PI / 4; 
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 15;
+    controls.maxDistance = 50;
+
+    function animate() {
+      render3dInterval = requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  });
 }
 
 // ── Sticker mockup ────────────────────────────────────────────────────────
