@@ -286,8 +286,10 @@ function renderMug3D(imageUrl, containerId, W, H) {
   const mugGroup = new THREE.Group();
   scene.add(mugGroup);
 
-  const loader = new THREE.TextureLoader();
-  loader.load(imageUrl, (texture) => {
+  const img = new Image();
+  img.onload = () => {
+    const texture = new THREE.Texture(img);
+    texture.needsUpdate = true;
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(1, 1);
