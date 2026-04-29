@@ -7,12 +7,15 @@ Bot: @MarketHubAI_boT
 import logging
 import json
 import os
+from dotenv import load_dotenv
 from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMarkup, MenuButtonWebApp
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 
+load_dotenv()
+
 # ─── CONFIG ─────────────────────────────────────────────────────────────────
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEBAPP_URL = os.getenv("WEBAPP_URL", "https://daviddavidov20022-commits.github.io/AI-Market-Hub/")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://your-domain.com")
 
 # ─── LOGGING ─────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -133,28 +136,50 @@ async def support_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 async def webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработчик данных из Mini App (заказы)."""
+    """Обработчик заказов из AI Print Studio Mini App."""
     data_str = update.message.web_app_data.data
     try:
         data = json.loads(data_str)
         action = data.get("action", "")
 
         if action == "order":
-            items = data.get("items", [])
-            total = data.get("total", 0)
-            items_text = "\n".join(
-                f"  • {i['name']} × {i['qty']} = {i['total']:,} ₽".replace(",", " ")
-                for i in items
-            )
+            product = data.get("product_label", "Товар")
+            price   = data.get("price", 0)
+            prompt  = data.get("prompt", "—")
+            name    = data.get("name", "—")
+            phone   = data.get("phone", "—")
+            address = data.get("address", "—")
+            comment = data.get("comment", "")
+            order_id = data.get("order_id", "#??????")
+
+            # Уведомление клиенту
             await update.message.reply_text(
-                f"✅ *Заказ оформлен!*\n\n"
-                f"🛒 Товары:\n{items_text}\n\n"
-                f"💰 Итого: *{total:,} ₽*\n\n".replace(",", " ") +
-                "📦 Наш менеджер свяжется с вами в течение 15 минут!",
+                f"✅ *Заказ {order_id} принят!*\n\n"
+                f"🛍 *Товар:* {product}\n"
+                f"🎨 *Дизайн:* {prompt}\n"
+                f"💰 *Сумма:* {price} ₽\n\n"
+                f"📦 Менеджер свяжется с вами в течение 15 минут для подтверждения.",
                 parse_mode="Markdown"
             )
+
+            # CRM — уведомление в личку (замени CHAT_ID на свой)
+            crm_chat_id = os.getenv("CRM_CHAT_ID")
+            if crm_chat_id:
+                await context.bot.send_message(
+                    chat_id=crm_chat_id,
+                    text=(
+                        f"🔔 *Новый заказ {order_id}*\n\n"
+                        f"👤 *Клиент:* {name}\n"
+                        f"📞 *Телефон:* {phone}\n"
+                        f"📍 *Адрес:* {address}\n"
+                        f"💬 *Комментарий:* {comment or '—'}\n\n"
+                        f"🛍 *Товар:* {product} — {price} ₽\n"
+                        f"🎨 *Промпт:* {prompt}\n"
+                    ),
+                    parse_mode="Markdown"
+                )
         else:
-            await update.message.reply_text(f"📩 Получены данные: {data_str}")
+            await update.message.reply_text(f"📩 Данные: {data_str}")
 
     except Exception as e:
         logger.error(f"WebApp data error: {e}")
