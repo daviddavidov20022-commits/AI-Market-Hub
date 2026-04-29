@@ -11,8 +11,8 @@ from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMar
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 
 # ─── CONFIG ─────────────────────────────────────────────────────────────────
-BOT_TOKEN = "8261258215:AAG2Rln9ihNf8aAmUTYkSifCgTpSebSbvw8"
-WEBAPP_URL = "https://your-domain.com"  # ← Замените на ваш домен (ngrok / Railway / Vercel)
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://your-domain.com")
 
 # ─── LOGGING ─────────────────────────────────────────────────────────────────
 logging.basicConfig(
