@@ -7,11 +7,9 @@ Bot: @MarketHubAI_boT
 import logging
 import json
 import os
-from dotenv import load_dotenv
 from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMarkup, MenuButtonWebApp
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 
-load_dotenv()
 
 # ─── CONFIG ─────────────────────────────────────────────────────────────────
 BOT_TOKEN = os.getenv("BOT_TOKEN")
